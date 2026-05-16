@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 小達人：趣味抽題箱</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F0F9FF;
+            overflow-x: hidden;
+        }
+        .bounce-custom {
+            animation: bounceCustom 2s infinite;
+        }
+        @keyframes bounceCustom {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .hidden-screen {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 relative">
+
+    <!-- Background Elements -->
+    <div class="fixed top-10 left-10 text-cyan-100 opacity-50 -z-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M9 15h.01"/><path d="M15 15h.01"/></svg>
+    </div>
+    <div class="fixed bottom-10 right-10 text-yellow-100 bounce-custom -z-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    </div>
+
+    <main class="relative z-10 max-w-2xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-screen">
+        
+        <!-- 1. IDLE SCREEN -->
+        <div id="screen-idle" class="text-center space-y-8 bg-white p-10 md:p-16 rounded-[3rem] shadow-2xl border-b-8 border-cyan-500 animate__animated animate__zoomIn">
+            <div class="bg-cyan-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-cyan-400 transform rotate-12">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 8.105V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a4 4 0 0 0 .52-8.105 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5z"/><path d="M9 13v.01"/><path d="M15 13v.01"/><path d="M12 17v.01"/></svg>
+            </div>
+            
+            <div class="space-y-4">
+                <h1 class="text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                    AI 小達人 <br/>
+                    <span class="text-cyan-600">趣味抽題箱</span>
+                </h1>
+                <p class="text-xl text-slate-500 font-bold">點擊按鈕，隨機抽出一道驚喜題目！</p>
+            </div>
+
+            <button id="btn-start" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 border-b-8 border-yellow-600 px-12 py-6 rounded-3xl text-3xl font-black flex items-center gap-4 transition-all mx-auto active:border-b-0 active:translate-y-2">
+                <span>我來挑戰！</span>
+            </button>
+            
+            <div class="flex justify-center gap-4 text-cyan-400">
+                <div class="animate-bounce">✦</div>
+                <div class="animate-bounce" style="animation-delay: 0.2s">✦</div>
+                <div class="animate-bounce" style="animation-delay: 0.4s">✦</div>
+            </div>
+        </div>
+
+        <!-- 2. PICKING SCREEN -->
+        <div id="screen-picking" class="hidden-screen flex flex-col items-center gap-8 animate__animated animate__fadeIn">
+            <div class="w-48 h-48 bg-cyan-500 rounded-[2.5rem] flex items-center justify-center shadow-2xl border-4 border-white animate__animated animate__pulse animate__infinite">
+                <div class="text-white font-black text-7xl">?</div>
+            </div>
+            <h2 class="text-3xl font-black text-cyan-600 tracking-widest animate-pulse">
+                正在從 30 題中隨機抽取...
+            </h2>
+        </div>
+
+        <!-- 3. ANSWERING SCREEN -->
+        <div id="screen-answering" class="hidden-screen w-full space-y-8 animate__animated animate__fadeInRight">
+            <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl border-4 border-cyan-200 relative">
+                <div class="absolute -top-6 left-12 bg-cyan-500 text-white px-6 py-2 rounded-2xl font-black text-xl shadow-lg border-2 border-white">
+                    隨機題目
+                </div>
+                <h2 id="question-text" class="text-2xl md:text-3xl font-bold leading-relaxed text-slate-800 pt-4">
+                    題目載入中...
+                </h2>
+            </div>
+
+            <div id="options-container" class="grid grid-cols-1 gap-4">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div id="tap-hint" class="flex items-center justify-center gap-3 text-cyan-500 font-black text-lg bg-cyan-50 py-3 rounded-2xl border-2 border-cyan-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 3-3 3 3"/><path d="M5 21V3"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/><path d="M21 3v2a4 4 0 0 1-3 3.87"/><path d="M15 13a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><path d="M15 7a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V5"/><circle cx="10" cy="13" r="2"/><circle cx="10" cy="7" r="2"/></svg>
+                點選你認為正確的答案！
+            </div>
+        </div>
+
+        <!-- 4. FINISHED SCREEN -->
+        <div id="screen-finished" class="hidden-screen text-center space-y-8 bg-white p-12 md:p-16 rounded-[3rem] shadow-2xl border-4 border-yellow-400 relative animate__animated animate__backInUp">
+            <div id="feedback-icon-container" class="flex justify-center">
+                <!-- Icon will be injected here -->
+            </div>
+
+            <div class="space-y-4">
+                <h2 id="feedback-title" class="text-4xl font-black">
+                    結果
+                </h2>
+                <p id="feedback-message" class="text-xl text-slate-500 font-bold max-w-sm mx-auto leading-relaxed">
+                    回饋訊息載入中...
+                </p>
+            </div>
+
+            <button id="btn-reset" class="bg-slate-900 border-b-6 border-slate-700 text-white px-12 py-6 rounded-3xl text-2xl font-black flex items-center justify-center gap-4 shadow-xl active:border-b-0 active:translate-y-2 transition-all mx-auto">
+                換下一位挑戰者
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="fixed bottom-6 left-0 w-full text-center text-slate-400 font-bold text-sm">
+        AI 小達人闖關賽 · 祝全校小朋友兒童節快樂！
+    </footer>
+
+    <script>
+        // Questions Data
+        const QUESTIONS = [
+            { id: 1, text: "下面哪一項是人工智能可以做到的事情？", options: [{key:"A",text:"自己長出手臂和腿"},{key:"B",text:"幫人識別照片裡的小貓小狗"},{key:"C",text:"像人一樣吃飯睡覺"},{key:"D",text:"自己製造新的地球"}], correctAnswer: "B" },
+            { id: 2, text: "手機裡的語音助手、拍照識別物品，屬於什麼？", options: [{key:"A",text:"魔法"},{key:"B",text:"人工智能"},{key:"C",text:"玩具"},{key:"D",text:"動畫"}], correctAnswer: "B" },
+            { id: 3, text: "以下哪一個屬於人工智能（AI）的應用？", options: [{key:"A",text:"計算器"},{key:"B",text:"智能語音助手（如Siri）"},{key:"C",text:"電飯煲"},{key:"D",text:"電視遙控器"}], correctAnswer: "B" },
+            { id: 4, text: "人類是透過讀書和經驗來學習，那人工智能（AI）主要是透過什麼方式來學習並變得更厲害呢？", options: [{key:"A",text:"吃電池補充能量"},{key:"B",text:"每天睡覺休息"},{key:"C",text:"分析大量的資料與數據"},{key:"D",text:"聽老師上課講故事"}], correctAnswer: "C" },
+            { id: 5, text: "關於人工智能（AI），哪個說法是對的？", options: [{key:"A",text:"AI是有生命的小精靈"},{key:"B",text:"AI是人類發明出來的智能機器"},{key:"C",text:"AI會自己吃飯睡覺"},{key:"D",text:"AI是真正的小動物"}], correctAnswer: "B" },
+            { id: 6, text: "在哪裡可以找到 AI 的幫忙？", options: [{key:"A",text:"在空瓶子裡"},{key:"B",text:"在襪子裡"},{key:"C",text:"在手機或智慧音箱裡"},{key:"D",text:"在泥土裡"}], correctAnswer: "C" },
+            { id: 7, text: "為什麼平板電腦裡的影片 APP，總是能推薦你喜歡看的卡通？", options: [{key:"A",text:"因為它有 AI 幫忙記住並分析你的喜好"},{key:"B",text:"因為平板電腦裡住著小精靈"},{key:"C",text:"因為它會讀心術"},{key:"D",text:"因為這是隨便亂猜的"}], correctAnswer: "A" },
+            { id: 8, text: "下面哪樣用AI做是不對的？", options: [{key:"A",text:"用AI抄曬整份功課當自己做"},{key:"B",text:"用AI幫忙找資料"},{key:"C",text:"用AI聽故事"},{key:"D",text:"用AI學英語單詞"}], correctAnswer: "A" },
+            { id: 9, text: "人工智能需要什麼才能工作？", options: [{key:"A",text:"陽光和水"},{key:"B",text:"電力和數據"},{key:"C",text:"糖果和玩具"},{key:"D",text:"雨傘和帽子"}], correctAnswer: "B" },
+            { id: 10, text: "什麼是「人工智能」（AI）？", options: [{key:"A",text:"讓電腦或機器人像人類一樣思考和學習的技術"},{key:"B",text:"一種特別聰明的外星人"},{key:"C",text:"一種長得像電腦的超級食物"},{key:"D",text:"所有會動的玩具車"}], correctAnswer: "A" },
+            { id: 11, text: "以下邊個場景用到人工智能？", options: [{key:"A",text:"用語音助手叫外賣"},{key:"B",text:"用手動鉛筆刨刨鉛筆"},{key:"C",text:"用手洗襪子"},{key:"D",text:"用紙巾擦桌子"}], correctAnswer: "A" },
+            { id: 12, text: "想同AI講話，例如問佢「今日天氣點呀？」，通常可以點做？", options: [{key:"A",text:"同部電視機講"},{key:"B",text:"同智能電話或智能喇叭講"},{key:"C",text:"同本書講"},{key:"D",text:"同隻狗講"}], correctAnswer: "B" },
+            { id: 13, text: "下面哪一個是人工智慧？", options: [{key:"A",text:"玩具小火車"},{key:"B",text:"會跟你聊天的機器人"},{key:"C",text:"普通鉛筆"},{key:"D",text:"小皮球"}], correctAnswer: "B" },
+            { id: 14, text: "下列哪一項是人工智能的英文縮寫？", options: [{key:"A",text:"AB"},{key:"B",text:"AI"},{key:"C",text:"IP"},{key:"D",text:"OK"}], correctAnswer: "B" },
+            { id: 15, text: "下列哪個屬於人工智能（AI）？", options: [{key:"A",text:"智能音箱"},{key:"B",text:"普通杯子"},{key:"C",text:"鉛筆盒"},{key:"D",text:"課本"}], correctAnswer: "A" },
+            { id: 16, text: "機器人想學認「狗狗」，該給它看什麼？", options: [{key:"A",text:"好多狗狗的照片"},{key:"B",text:"一塊好吃的西瓜"},{key:"C",text:"一隻臭臭的襪子"},{key:"D",text:"一把玩沙的小鏟子"}], correctAnswer: "A" },
+            { id: 17, text: "如果想讓人工智能學會分辨「長頸鹿」，最有效的方法是什麼？", options: [{key:"A",text:"帶電腦去動物園聞長頸鹿的氣味"},{key:"B",text:"給它看幾千張不同角度的長頸鹿照片"},{key:"C",text:"在電腦屏幕上畫一隻長頸鹿"},{key:"D",text:"給電腦聽長頸鹿跑步的聲音"}], correctAnswer: "B" },
+            { id: 18, text: "以下哪一個物品，最需要用到 AI 技術來幫忙「看懂」地圖並自動規劃避開塞車的路線？", options: [{key:"A",text:"手機裡的地圖導航 APP"},{key:"B",text:"牆壁上的掛鐘"},{key:"C",text:"課本後面的地圖附錄"},{key:"D",text:"阿公用的放大鏡"}], correctAnswer: "A" },
+            { id: 19, text: "當你在電腦裡和 AI 聊天機器人說話時，它能像真人一樣回答你，這主要是因為它學會了什麼？", options: [{key:"A",text:"讀心術"},{key:"B",text:"魔法文字"},{key:"C",text:"人類的語言和說話規律"},{key:"D",text:"聽話符咒"}], correctAnswer: "C" },
+            { id: 20, text: "人工智能（AI）如果沒有了什麼，它就完全無法開機、也無法幫忙思考了？", options: [{key:"A",text:"漂亮的衣服"},{key:"B",text:"電力和網絡（或計算晶片）"},{key:"C",text:"美味的零食"},{key:"D",text:"舒適的床墊"}], correctAnswer: "B" },
+            { id: 21, text: "媽媽手機裡的相機功能，會自動幫照片裡的人「美顏」和調亮光線，這也是一種 AI 應用嗎？", options: [{key:"A",text:"不是，那是因為手機鏡頭比較乾淨"},{key:"B",text:"是的，AI 會自動識別人的臉部並優化照片畫面"},{key:"C",text:"不是，那是因為拍照時太陽剛好很大"},{key:"D",text:"是的，因為手機裡藏著一隻彩色的小精靈"}], correctAnswer: "B" },
+            { id: 22, text: "關於人工智能（AI）和人類大腦的差別，哪一個說法是正確的？", options: [{key:"A",text:"AI 有真正的感情，會因為考不好而傷心"},{key:"B",text:"人類大腦會感到疲倦和肚子餓，但 AI 只要有電就能一直計算"},{key:"C",text:"AI 不需要人類編寫程式，自己就會誕生出來"},{key:"D",text:"人類大腦裝下的資料比全世界的電腦還要多"}], correctAnswer: "B" },
+            { id: 23, text: "如果一個會畫畫的 AI 突然「罷工」不畫了，最可能的原因是什麼？", options: [{key:"A",text:"它跟其他電腦吵架，心情不好"},{key:"B",text:"它太累了，想去公園散步"},{key:"C",text:"電腦斷電了，或是程式出現了錯誤（Bug）"},{key:"D",text:"它覺得紙張太硬，不想畫了"}], correctAnswer: "C" },
+            { id: 24, text: "我們可以在電腦、手機和智慧音箱裡找到 AI，那大自然中的石頭裡會有 AI 嗎？", options: [{key:"A",text:"有，只要把石頭打破就會看到"},{key:"B",text:"沒有，因為石頭是自然形成的，沒有電子晶片和程式"},{key:"C",text:"有，下雨的時候 AI 就會從石頭裡跑出來"},{key:"D",text:"沒有，因為石頭太重了，AI 搬不動"}], correctAnswer: "B" },
+            { id: 25, text: "在家裡，下面哪一個物品最「不具備」人工智能？", options: [{key:"A",text:"智能掃地機器人"},{key:"B",text:"普通的塑膠垃圾桶"},{key:"C",text:"會根據語音點歌的智慧喇叭"},{key:"D",text:"會自動識別衣服材質並調整水溫的智能洗衣機"}], correctAnswer: "B" },
+            { id: 26, text: "電影裡的科學家經常讓機器人去危險的火山或外太空探險，這是為什麼？", options: [{key:"A",text:"因為機器人不怕高溫和缺氧，且運用 AI 能幫忙收集危險環境的數據"},{key:"B",text:"因為機器人做錯事，科學家在懲罰它"},{key:"C",text:"因為機器人自己很想去外太空旅遊"},{key:"D",text:"因為外太空有賣機器人喜歡吃的電池"}], correctAnswer: "A" },
+            { id: 27, text: "下面哪一個是把 AI 應用在「保護地球環境」的好方法？", options: [{key:"A",text:"用 AI 幫忙監測森林火災並及時報警"},{key:"B",text:"用 AI 寫一封信，叫小鳥不要在樹上唱歌"},{key:"C",text:"讓 AI 把所有的樹木都砍掉"},{key:"D",text:"用 AI 來猜測哪裡有藏著黃金"}], correctAnswer: "A" },
+            { id: 28, text: "如果你發現 AI 告訴你的某個科學常識是錯誤的，你應該怎麼想？", options: [{key:"A",text:"AI 絕對不會錯，一定是教科書寫錯了"},{key:"B",text:"AI 只是從網上收集資料來回答，有時也會出錯，我們必須自己查證"},{key:"C",text:"這部電腦一定是被外星人控制了"},{key:"D",text:"以後再也不用這台電腦了"}], correctAnswer: "B" },
+            { id: 29, text: "為什麼有些工廠喜歡用 AI 機器手臂來組裝零組件，而不是全部用人工？", options: [{key:"A",text:"因為機器手臂組裝的速度和精準度非常固定，而且不會累"},{key:"B",text:"因為機器手臂長得很帥"},{key:"C",text:"因為機器手臂不需要工廠開燈，可以在全黑的地方玩遊戲"},{key:"D",text:"因為機器手臂會一邊工作一邊講笑話"}], correctAnswer: "A" },
+            { id: 30, text: "未來當你長大後，應該如何看待越來越厲害的人工智能技術？", options: [{key:"A",text:"感到非常害怕，躲起來不接觸任何科技"},{key:"B",text:"覺得自己不用讀書了，反正交給 AI 就好"},{key:"C",text:"保持好奇心並好好學習，把 AI 當作讓人類生活更美好的強大工具"},{key:"D",text:"把 AI 當作真正的寵物，每天餵它吃糖果"}], correctAnswer: "C" }
+        ];
+
+        const CORRECT_MESSAGES = [
+            "你擁有一顆 AI 智慧腦袋！請前往下一關領取你的蓋章吧。",
+            "太厲害了！你簡直是未來的 AI 科學家！",
+            "完全正確！看來你對人工智能非常了解喔！",
+            "恭喜過關！你的智慧能量滿滿，去下一關挑戰吧！",
+            "答對了！你對科技的敏銳度讓老師驚訝！",
+            "智慧之星就是你！快去領取你的勝利標誌吧。",
+            "AI 也被你的聰明才智驚呆了！挑戰成功！",
+            "完美的回答！送你一個大大的贊，去邁向下一關！"
+        ];
+
+        const WRONG_MESSAGES = [
+            "別灰心，去請教工作人員後，可以再回來抽一題挑戰喔！",
+            "差一點點！AI 的世界還有很多奧秘，再去探索一下吧。",
+            "這個問題有點挑戰性呢！沒關係，問問老師再試一次！",
+            "失敗是成功的助手！再去觀察一下攤位的介紹吧。",
+            "哎呀，被題目絆了一下！再去補充點 AI 能量再回來。",
+            "沒關係，智慧是慢慢累積的！再去看看其他的 AI 應用吧。",
+            "這題比較難，聽聽解說，你一定能學會！",
+            "加油加油！下一次你一定能抽中並答對！"
+        ];
+
+        // State & DOM Elements
+        let currentQuestion = null;
+        let isAnswered = false;
+
+        const screens = {
+            idle: document.getElementById('screen-idle'),
+            picking: document.getElementById('screen-picking'),
+            answering: document.getElementById('screen-answering'),
+            finished: document.getElementById('screen-finished')
+        };
+
+        const btnStart = document.getElementById('btn-start');
+        const btnReset = document.getElementById('btn-reset');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const tapHint = document.getElementById('tap-hint');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackIconContainer = document.getElementById('feedback-icon-container');
+
+        // Functions
+        function showScreen(screenId) {
+            Object.keys(screens).forEach(key => {
+                if (key === screenId) {
+                    screens[key].classList.remove('hidden-screen');
+                } else {
+                    screens[key].classList.add('hidden-screen');
+                }
+            });
+        }
+
+        function pickQuestion() {
+            showScreen('picking');
+            
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * QUESTIONS.length);
+                currentQuestion = QUESTIONS[randomIndex];
+                renderQuestion();
+                showScreen('answering');
+            }, 1500);
+        }
+
+        function renderQuestion() {
+            isAnswered = false;
+            questionText.innerText = currentQuestion.text;
+            optionsContainer.innerHTML = '';
+            tapHint.classList.remove('hidden');
+
+            currentQuestion.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border-4 border-slate-100 shadow-[0_4px_0_0_#F1F5F9] relative p-6 rounded-3xl flex items-center text-left transition-all group overflow-hidden animate__animated animate__fadeInUp";
+                btn.style.animationDelay = `${opt.key.charCodeAt(0) * 0.05}s`;
+                
+                btn.innerHTML = `
+                    <div class="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-cyan-100 text-cyan-600 group-hover:bg-cyan-500 group-hover:text-white transition-all">
+                        ${opt.key}
+                    </div>
+                    <span class="text-xl md:text-2xl font-bold leading-tight">${opt.text}</span>
+                    <div class="ml-auto icon-slot"></div>
+                `;
+
+                btn.onclick = () => handleAnswer(opt.key, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedKey, btnElement) {
+            if (isAnswered) return;
+            isAnswered = true;
+            tapHint.classList.add('hidden');
+
+            const isCorrect = selectedKey === currentQuestion.correctAnswer;
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            buttons.forEach(btn => {
+                const key = btn.querySelector('div').innerText.trim();
+                const iconSlot = btn.querySelector('.icon-slot');
+                
+                if (key === currentQuestion.correctAnswer) {
+                    btn.className = "bg-green-50 border-green-500 text-green-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
+                    btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-green-500 text-white";
+                    iconSlot.innerHTML = `<svg class="text-green-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+                } else if (key === selectedKey) {
+                    btn.className = "bg-red-50 border-red-500 text-red-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
+                    btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-red-500 text-white";
+                    iconSlot.innerHTML = `<svg class="text-red-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+                } else {
+                    btn.classList.add('opacity-40');
+                }
+            });
+
+            // Set random feedback
+            const messages = isCorrect ? CORRECT_MESSAGES : WRONG_MESSAGES;
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            
+            feedbackTitle.innerText = isCorrect ? "答對了！太棒了" : "差一點點就對了";
+            feedbackTitle.className = `text-4xl font-black ${isCorrect ? 'text-green-600' : 'text-orange-600'}`;
+            feedbackMessage.innerText = randomMsg;
+
+            // Render Result Icon
+            if (isCorrect) {
+                feedbackIconContainer.innerHTML = `
+                    <div class="relative">
+                        <div class="bg-green-100 p-8 rounded-full border-4 border-green-500 relative shadow-inner animate__animated animate__bounceIn">
+                            <svg class="w-24 h-24 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        </div>
+                    </div>
+                `;
+            } else {
+                feedbackIconContainer.innerHTML = `
+                    <div class="bg-orange-100 p-8 rounded-full border-4 border-orange-400 animate__animated animate__shakeX">
+                        <svg class="w-24 h-24 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                    </div>
+                `;
+            }
+
+            setTimeout(() => {
+                showScreen('finished');
+            }, 1500);
+        }
+
+        // Event Listeners
+        btnStart.onclick = pickQuestion;
+        btnReset.onclick = () => {
+            currentQuestion = null;
+            showScreen('idle');
+        };
+
+    </script>
+</body>
+</html>
