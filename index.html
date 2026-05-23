@@ -184,6 +184,7 @@
         let currentQuestion = null;
         let isAnswered = false;
         let lastAnswerCorrect = true;
+        let attemptCount = 0; // Tracks tries for current question: 0 on first trial, 1 on second trial
         let shuffleQueue = [];
 
         function getNextRandomQuestion(excludeId = null) {
@@ -243,6 +244,7 @@
 
         function pickQuestion() {
             showScreen('picking');
+            attemptCount = 0;
             
             setTimeout(() => {
                 currentQuestion = getNextRandomQuestion();
@@ -292,33 +294,32 @@
             lastAnswerCorrect = isCorrect;
             const buttons = optionsContainer.querySelectorAll('button');
 
-            buttons.forEach(btn => {
-                const key = btn.querySelector('div').innerText.trim();
-                const iconSlot = btn.querySelector('.icon-slot');
-                
-                if (key === currentQuestion.correctAnswer) {
-                    btn.className = "bg-green-50 border-green-500 text-green-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
-                    btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-green-500 text-white";
-                    iconSlot.innerHTML = `<svg class="text-green-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
-                } else if (key === selectedKey) {
-                    btn.className = "bg-red-50 border-red-500 text-red-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
-                    btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-red-500 text-white";
-                    iconSlot.innerHTML = `<svg class="text-red-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
-                } else {
-                    btn.classList.add('opacity-40');
-                }
-            });
-
-            // Set random feedback
-            const messages = isCorrect ? CORRECT_MESSAGES : WRONG_MESSAGES;
-            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-            
-            feedbackTitle.innerText = isCorrect ? "答對了！太棒了" : "差一點點就對了";
-            feedbackTitle.className = `text-4xl font-black ${isCorrect ? 'text-green-600' : 'text-orange-600'}`;
-            feedbackMessage.innerText = randomMsg;
-
-            // Render Result Icon and dynamic reset button text
             if (isCorrect) {
+                // If correct, show green highlight instantly
+                buttons.forEach(btn => {
+                    const key = btn.querySelector('div').innerText.trim();
+                    const iconSlot = btn.querySelector('.icon-slot');
+                    
+                    if (key === currentQuestion.correctAnswer) {
+                        btn.className = "bg-green-50 border-green-500 text-green-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
+                        btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-green-500 text-white";
+                        iconSlot.innerHTML = `<svg class="text-green-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+                    } else if (key === selectedKey) {
+                        btn.className = "bg-red-50 border-red-500 text-red-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
+                        btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-red-500 text-white";
+                        iconSlot.innerHTML = `<svg class="text-red-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+                    } else {
+                        btn.classList.add('opacity-40');
+                    }
+                });
+
+                const messages = CORRECT_MESSAGES;
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                
+                feedbackTitle.innerText = "答對了！太棒了";
+                feedbackTitle.className = "text-4xl font-black text-green-600";
+                feedbackMessage.innerText = randomMsg;
+
                 feedbackIconContainer.innerHTML = `
                     <div class="relative">
                         <div class="bg-green-100 p-8 rounded-full border-4 border-green-500 relative shadow-inner animate__animated animate__bounceIn">
@@ -331,15 +332,71 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                 `;
             } else {
-                feedbackIconContainer.innerHTML = `
-                    <div class="bg-orange-100 p-8 rounded-full border-4 border-orange-400 animate__animated animate__shakeX">
-                        <svg class="w-24 h-24 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                    </div>
-                `;
-                btnReset.innerHTML = `
-                    再來一次
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                `;
+                // If incorrect
+                if (attemptCount === 0) {
+                    // FIRST WRONG: Do NOT show correct answers, only color the selected one red
+                    buttons.forEach(btn => {
+                        const key = btn.querySelector('div').innerText.trim();
+                        const iconSlot = btn.querySelector('.icon-slot');
+                        
+                        if (key === selectedKey) {
+                            btn.className = "bg-red-50 border-red-500 text-red-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
+                            btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-red-500 text-white";
+                            iconSlot.innerHTML = `<svg class="text-red-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+                        } else {
+                            btn.classList.add('opacity-40');
+                        }
+                    });
+
+                    feedbackTitle.innerText = "答錯了";
+                    feedbackTitle.className = "text-4xl font-black text-orange-600";
+                    feedbackMessage.innerText = "答錯了，再來一次！這題再想一想喔！";
+
+                    feedbackIconContainer.innerHTML = `
+                        <div class="bg-orange-100 p-8 rounded-full border-4 border-orange-400 animate__animated animate__shakeX">
+                            <svg class="w-24 h-24 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                        </div>
+                    `;
+                    btnReset.innerHTML = `
+                        再來一次
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                    `;
+                } else {
+                    // SECOND WRONG: Reveal the correct answer!
+                    buttons.forEach(btn => {
+                        const key = btn.querySelector('div').innerText.trim();
+                        const iconSlot = btn.querySelector('.icon-slot');
+                        
+                        if (key === currentQuestion.correctAnswer) {
+                            btn.className = "bg-green-50 border-green-500 text-green-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
+                            btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-green-500 text-white";
+                            iconSlot.innerHTML = `<svg class="text-green-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+                        } else if (key === selectedKey) {
+                            btn.className = "bg-red-50 border-red-500 text-red-700 relative p-6 rounded-3xl flex items-center text-left transition-all shadow-none";
+                            btn.querySelector('div').className = "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl font-black text-2xl mr-6 bg-red-500 text-white";
+                            iconSlot.innerHTML = `<svg class="text-red-500 w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+                        } else {
+                            btn.classList.add('opacity-40');
+                        }
+                    });
+
+                    const messages = WRONG_MESSAGES;
+                    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                    
+                    feedbackTitle.innerText = "差一點點就對了";
+                    feedbackTitle.className = "text-4xl font-black text-orange-600";
+                    feedbackMessage.innerText = randomMsg;
+
+                    feedbackIconContainer.innerHTML = `
+                        <div class="bg-orange-100 p-8 rounded-full border-4 border-orange-400 animate__animated animate__shakeX">
+                            <svg class="w-24 h-24 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                        </div>
+                    `;
+                    btnReset.innerHTML = `
+                        換下一位挑戰者
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                    `;
+                }
             }
 
             // Move to feedback page after 1.0 second (1000ms)
@@ -352,13 +409,22 @@
         btnStart.onclick = pickQuestion;
         btnReset.onclick = () => {
             if (lastAnswerCorrect) {
+                // Correct answer - reset, go back to start screen
                 currentQuestion = null;
+                attemptCount = 0;
                 showScreen('idle');
             } else {
-                // Pick a different random question using our high-diversity cycle pool
-                currentQuestion = getNextRandomQuestion(currentQuestion.id);
-                renderQuestion();
-                showScreen('answering');
+                if (attemptCount === 0) {
+                    // First wrong answer just happened - let them retry the SAME question
+                    attemptCount = 1;
+                    renderQuestion();
+                    showScreen('answering');
+                } else {
+                    // Second wrong answer happened - progress to idle screen for the next child
+                    currentQuestion = null;
+                    attemptCount = 0;
+                    showScreen('idle');
+                }
             }
         };
 
