@@ -183,6 +183,36 @@
         // State & DOM Elements
         let currentQuestion = null;
         let isAnswered = false;
+        let lastAnswerCorrect = true;
+        let shuffleQueue = [];
+
+        function getNextRandomQuestion(excludeId = null) {
+            // If queue is empty, refill and shuffle it
+            if (shuffleQueue.length === 0) {
+                let pool = [...QUESTIONS];
+                // Fisher-Yates Shuffle
+                for (let i = pool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pool[i], pool[j]] = [pool[j], pool[i]];
+                }
+                shuffleQueue = pool;
+            }
+
+            // Find index of first item in queue that isn't the excluded ID
+            let targetIndex = 0;
+            if (excludeId !== null) {
+                while (targetIndex < shuffleQueue.length && shuffleQueue[targetIndex].id === excludeId) {
+                    targetIndex++;
+                }
+                // If all remaining items match excludeId, we have to deal with it, but usually won't happen unless length <= 1
+                if (targetIndex >= shuffleQueue.length) {
+                    targetIndex = 0;
+                }
+            }
+
+            const chosen = shuffleQueue.splice(targetIndex, 1)[0];
+            return chosen;
+        }
 
         const screens = {
             idle: document.getElementById('screen-idle'),
@@ -215,8 +245,7 @@
             showScreen('picking');
             
             setTimeout(() => {
-                const randomIndex = Math.floor(Math.random() * QUESTIONS.length);
-                currentQuestion = QUESTIONS[randomIndex];
+                currentQuestion = getNextRandomQuestion();
                 renderQuestion();
                 showScreen('answering');
             }, 1500);
@@ -226,7 +255,8 @@
             isAnswered = false;
             questionText.innerText = currentQuestion.text;
             optionsContainer.innerHTML = '';
-            tapHint.classList.remove('hidden');
+            optionsContainer.className = "grid grid-cols-1 gap-4 opacity-0 transform translate-y-4 transition-all duration-300";
+            tapHint.classList.add('hidden');
 
             currentQuestion.options.forEach(opt => {
                 const btn = document.createElement('button');
@@ -244,6 +274,13 @@
                 btn.onclick = () => handleAnswer(opt.key, btn);
                 optionsContainer.appendChild(btn);
             });
+
+            // 0.3s (300ms) delay to show options
+            setTimeout(() => {
+                optionsContainer.classList.remove('opacity-0', 'translate-y-4');
+                optionsContainer.classList.add('opacity-100', 'translate-y-0');
+                tapHint.classList.remove('hidden');
+            }, 300);
         }
 
         function handleAnswer(selectedKey, btnElement) {
@@ -252,6 +289,7 @@
             tapHint.classList.add('hidden');
 
             const isCorrect = selectedKey === currentQuestion.correctAnswer;
+            lastAnswerCorrect = isCorrect;
             const buttons = optionsContainer.querySelectorAll('button');
 
             buttons.forEach(btn => {
@@ -279,7 +317,7 @@
             feedbackTitle.className = `text-4xl font-black ${isCorrect ? 'text-green-600' : 'text-orange-600'}`;
             feedbackMessage.innerText = randomMsg;
 
-            // Render Result Icon
+            // Render Result Icon and dynamic reset button text
             if (isCorrect) {
                 feedbackIconContainer.innerHTML = `
                     <div class="relative">
@@ -288,24 +326,40 @@
                         </div>
                     </div>
                 `;
+                btnReset.innerHTML = `
+                    換下一位挑戰者
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                `;
             } else {
                 feedbackIconContainer.innerHTML = `
                     <div class="bg-orange-100 p-8 rounded-full border-4 border-orange-400 animate__animated animate__shakeX">
                         <svg class="w-24 h-24 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                     </div>
                 `;
+                btnReset.innerHTML = `
+                    再來一次
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                `;
             }
 
+            // Move to feedback page after 1.0 second (1000ms)
             setTimeout(() => {
                 showScreen('finished');
-            }, 1500);
+            }, 1000);
         }
 
         // Event Listeners
         btnStart.onclick = pickQuestion;
         btnReset.onclick = () => {
-            currentQuestion = null;
-            showScreen('idle');
+            if (lastAnswerCorrect) {
+                currentQuestion = null;
+                showScreen('idle');
+            } else {
+                // Pick a different random question using our high-diversity cycle pool
+                currentQuestion = getNextRandomQuestion(currentQuestion.id);
+                renderQuestion();
+                showScreen('answering');
+            }
         };
 
     </script>
